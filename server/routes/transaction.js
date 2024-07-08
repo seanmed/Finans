@@ -1,30 +1,18 @@
-import mongoose from "mongoose";
-import { loadType } from "mongoose-currency";
+import express from "express";
+import Transaction from "../models/Transaction.js";
 
-const Schema = mongoose.Schema;
-loadType(mongoose);
+const router = express.Router();
 
-const TransactionSchema = new Schema(
-  {
-    buyer: {
-      type: String,
-      required: true,
-    },
-    amount: {
-      type: mongoose.Types.Currency,
-      currency: "USD",
-      get: (v) => v / 100,
-    },
-    productIds: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-      },
-    ],
-  },
-  { timestamps: true, toJSON: { getters: true } }
-);
+router.get("/transactions", async (req, res) => {
+  try {
+    const transactions = await Transaction.find()
+      .limit(50)
+      .sort({ createdOn: -1 });
 
-const Transaction = mongoose.model("Transaction", TransactionSchema);
+    res.status(200).json(transactions);
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
+});
 
-export default Transaction;
+export default router;
